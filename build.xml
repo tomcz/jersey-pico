@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+  ~ Copyright (c) 2010, Thomas Czarniecki
+  ~ All rights reserved.
+  ~
+  ~ Redistribution and use in source and binary forms, with or without modification,
+  ~ are permitted provided that the following conditions are met:
+  ~
+  ~  * Redistributions of source code must retain the above copyright notice,
+  ~    this list of conditions and the following disclaimer.
+  ~  * Redistributions in binary form must reproduce the above copyright notice,
+  ~    this list of conditions and the following disclaimer in the documentation
+  ~    and/or other materials provided with the distribution.
+  ~  * Neither the name of S3DropBox, Thomas Czarniecki, tomczarniecki.com nor
+  ~    the names of its contributors may be used to endorse or promote products
+  ~    derived from this software without specific prior written permission.
+  ~
+  ~ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+  ~ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  ~ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  ~ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  ~ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  ~ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  ~ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  ~ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  ~ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  ~ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  -->
+<project name="jersey-pico" basedir="." default="build">
+
+    <property name="main.dir" location="src/main/java" />
+    <property name="test.dir" location="src/test/java" />
+
+    <property name="output.dir" location="build" />
+    <property name="compile.dir" location="${output.dir}/compile" />
+    <property name="javadoc.dir" location="${output.dir}/javadoc" />
+
+    <path id="classpath">
+        <fileset dir="${compile.dir}" />
+        <fileset dir="lib/buildtime" />
+        <fileset dir="lib/runtime" />
+    </path>
+
+    <target name="build" depends="clean, run-tests, javadoc"
+            description="Compile, run all tests, create JAR files and create javadoc." />
+
+    <target name="clean">
+        <delete dir="${output.dir}" />
+    </target>
+
+    <macrodef name="compile">
+        <attribute name="srcdir" />
+        <attribute name="jarfile" />
+        <sequential>
+            <mkdir dir="${compile.dir}/classes" />
+            <javac srcdir="@{srcdir}" destdir="${compile.dir}/classes" classpathref="classpath" debug="yes" />
+            <copy todir="${compile.dir}/classes" includeemptydirs="no">
+                <fileset dir="@{srcdir}" excludes="**/*.java" />
+            </copy>
+            <jar jarfile="${compile.dir}/@{jarfile}" basedir="${compile.dir}/classes" />
+            <delete dir="${compile.dir}/classes" />
+        </sequential>
+    </macrodef>
+
+    <target name="compile">
+        <compile srcdir="${main.dir}" jarfile="${ant.project.name}.jar" />
+        <compile srcdir="${test.dir}" jarfile="${ant.project.name}-test.jar" />
+    </target>
+
+    <target name="run-tests" depends="compile"
+            description="Run all tests. Use -Dtestcase=SomeTestClassName to specify a single test.">
+
+        <junit fork="yes" forkmode="once" haltonfailure="no" failureproperty="unit.tests.failed">
+            <classpath refid="classpath" />
+            <formatter type="brief" usefile="no" />
+            <batchtest if="testcase">
+                <fileset dir="${test.dir}">
+                    <include name="**/${testcase}.java" />
+                </fileset>
+            </batchtest>
+            <batchtest unless="testcase">
+                <fileset dir="${test.dir}">
+                    <include name="**/*Tests.java" />
+                </fileset>
+            </batchtest>
+        </junit>
+        <fail if="unit.tests.failed" message="One or more tests failed. Please check the logs for more info." />
+    </target>
+
+    <target name="javadoc" depends="compile">
+        <mkdir dir="${javadoc.dir}" />
+        <javadoc sourcepath="${main.dir}" destdir="${javadoc.dir}" classpathref="classpath" />
+    </target>
+
+</project>
