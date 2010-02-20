@@ -5,6 +5,8 @@
         <format property="release.version" pattern="yyyyMMdd" />
     </tstamp>
 
+    <property name="application.name" value="${ant.project.name}-${release.version}" />
+
     <property name="main.dir" location="src/main/java" />
     <property name="test.dir" location="src/test/java" />
 
@@ -18,8 +20,8 @@
         <fileset dir="lib/runtime" />
     </path>
 
-    <target name="build" depends="clean, run-tests, javadoc"
-            description="Compile, run all tests, create JAR files and create javadoc." />
+    <target name="build" depends="clean, run-tests, create-dist"
+            description="Compile, run all tests, create JAR files and documentation." />
 
     <target name="clean">
         <delete dir="${output.dir}" />
@@ -40,8 +42,8 @@
     </macrodef>
 
     <target name="compile">
-        <compile srcdir="${main.dir}" jarfile="${ant.project.name}-${release.version}.jar" />
-        <compile srcdir="${test.dir}" jarfile="${ant.project.name}-test.jar" />
+        <compile srcdir="${main.dir}" jarfile="${application.name}.jar" />
+        <compile srcdir="${test.dir}" jarfile="${application.name}-test.jar" />
     </target>
 
     <target name="run-tests" depends="compile"
@@ -67,6 +69,14 @@
     <target name="javadoc" depends="compile">
         <mkdir dir="${javadoc.dir}" />
         <javadoc sourcepath="${main.dir}" destdir="${javadoc.dir}" classpathref="classpath" />
+    </target>
+
+    <target name="create-dist" depends="javadoc">
+        <jar jarfile="${compile.dir}/${application.name}-javadoc.jar" basedir="${javadoc.dir}" />
+        <jar jarfile="${compile.dir}/${application.name}-source.jar" basedir="${main.dir}" />
+        <zip zipfile="${output.dir}/${application.name}.zip">
+            <zipfileset prefix="${application.name}" dir="${compile.dir}" excludes="*-test.jar" />
+        </zip>
     </target>
 
 </project>
