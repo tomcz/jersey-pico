@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="jersey-pico" basedir="." default="build">
 
-    <tstamp>
-        <format property="release.version" pattern="yyyyMMdd" />
-    </tstamp>
-
-    <property name="application.name" value="${ant.project.name}-${release.version}" />
-
     <property name="main.dir" location="src/main/java" />
     <property name="test.dir" location="src/test/java" />
 
     <property name="output.dir" location="build" />
+    <property name="report.dir" location="${output.dir}/report" />
     <property name="compile.dir" location="${output.dir}/compile" />
     <property name="javadoc.dir" location="${output.dir}/javadoc" />
 
@@ -20,11 +15,26 @@
         <fileset dir="lib/runtime" />
     </path>
 
-    <target name="build" depends="clean, run-tests, create-dist"
+    <target name="build" depends="clean, check-tests, create-dist"
             description="Compile, run all tests, create JAR files and documentation." />
+
+    <target name="ci-build" depends="git-revision,build" description="Target for CI build server." />
 
     <target name="clean">
         <delete dir="${output.dir}" />
+    </target>
+
+    <target name="git-revision">
+        <exec executable="git" dir="${basedir}" failonerror="yes" outputproperty="release.version">
+            <arg value="rev-parse" />
+            <arg value="HEAD" />
+        </exec>
+    </target>
+
+    <target name="release-version" unless="release.version">
+        <tstamp>
+            <format property="release.version" pattern="yyyyMMdd" />
+        </tstamp>
     </target>
 
     <macrodef name="compile">
@@ -32,7 +42,7 @@
         <attribute name="jarfile" />
         <sequential>
             <mkdir dir="${compile.dir}/classes" />
-            <javac srcdir="@{srcdir}" destdir="${compile.dir}/classes" classpathref="classpath" debug="yes" />
+            <javac srcdir="@{srcdir}" destdir="${compile.dir}/classes" classpathref="classpath" debug="yes" includeantruntime="no" />
             <copy todir="${compile.dir}/classes" includeemptydirs="no">
                 <fileset dir="@{srcdir}" excludes="**/*.java" />
             </copy>
@@ -41,29 +51,37 @@
         </sequential>
     </macrodef>
 
-    <target name="compile">
+    <target name="compile" depends="release-version">
+        <property name="application.name" value="${ant.project.name}-${release.version}" />
         <compile srcdir="${main.dir}" jarfile="${application.name}.jar" />
         <compile srcdir="${test.dir}" jarfile="${application.name}-test.jar" />
     </target>
 
-    <target name="run-tests" depends="compile"
+    <target name="run-tests" depends="compile" unless="skip.tests"
             description="Run all tests. Use -Dtestcase=SomeTestClassName to specify a single test.">
-
-        <junit fork="yes" forkmode="once" haltonfailure="no" failureproperty="unit.tests.failed">
+        <mkdir dir="${report.dir}" />
+        <junit fork="yes" forkmode="once" printsummary="yes" haltonfailure="no" failureproperty="tests.failed">
             <classpath refid="classpath" />
-            <formatter type="brief" usefile="no" />
-            <batchtest if="testcase">
+            <formatter type="xml" />
+            <batchtest if="testcase" todir="${report.dir}">
                 <fileset dir="${test.dir}">
                     <include name="**/${testcase}.java" />
                 </fileset>
             </batchtest>
-            <batchtest unless="testcase">
+            <batchtest unless="testcase" todir="${report.dir}">
                 <fileset dir="${test.dir}">
                     <include name="**/*Tests.java" />
                 </fileset>
             </batchtest>
         </junit>
-        <fail if="unit.tests.failed" message="One or more tests failed. Please check the logs for more info." />
+    </target>
+    
+    <target name="check-tests" depends="run-tests" if="tests.failed">
+        <junitreport todir="${report.dir}">
+            <fileset dir="${report.dir}" includes="TEST-*.xml" />
+            <report todir="${report.dir}/html" />
+        </junitreport>
+        <fail message="One or more tests failed. Please check the test report for more info." />
     </target>
 
     <target name="javadoc" depends="compile">
@@ -72,8 +90,8 @@
     </target>
 
     <target name="create-dist" depends="javadoc">
+        <jar jarfile="${compile.dir}/${application.name}-sources.jar" basedir="${main.dir}" />
         <jar jarfile="${compile.dir}/${application.name}-javadoc.jar" basedir="${javadoc.dir}" />
-        <jar jarfile="${compile.dir}/${application.name}-source.jar" basedir="${main.dir}" />
         <zip zipfile="${output.dir}/${application.name}.zip">
             <zipfileset prefix="${application.name}" dir="${compile.dir}" excludes="*-test.jar" />
         </zip>
