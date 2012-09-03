@@ -62,6 +62,37 @@ task(jetty, type: JavaExec, dependsOn: 'testClasses') {
   classpath = sourceSets.test.runtimeClasspath
 }
 
+ext.sharedManifest = manifest {
+  attributes("Implementation-Title": "jersey-pico", "Implementation-Version": version)
+}
+
+jar {
+  manifest = project.manifest {
+    from sharedManifest
+  }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+  classifier = 'sources'
+  from sourceSets.main.allSource
+  manifest = project.manifest {
+    from sharedManifest
+  }
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+  manifest = project.manifest {
+    from sharedManifest
+  }
+}
+
+artifacts {
+  archives sourcesJar
+  archives javadocJar
+}
+
 /*
 task wrapper(type: Wrapper) {
   gradleVersion = '1.0'
