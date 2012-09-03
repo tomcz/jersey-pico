@@ -58,7 +58,7 @@ dependencies {
   }
 }
 
-task(jetty, type: JavaExec, dependsOn: testClasses) {
+task jetty(type: JavaExec, dependsOn: testClasses) {
   main = 'com.sun.jersey.spi.pico.container.servlet.WebServer'
   classpath = sourceSets.test.runtimeClasspath
 }
