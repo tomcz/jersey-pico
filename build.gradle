@@ -93,11 +93,15 @@ task mavenPom(dependsOn: classes) {
   ext.pomPath = "$libsDir/pom.xml"
   ext.pomFile = file(pomPath)
   doLast {
-    pom {
+    def pomDef = pom {
       groupId = 'com.watchitlater'
       artifactId = project.name
       version = project.version
-    }.writeTo(pomPath)
+    }
+    pomDef.whenConfigured { pom ->
+      pom.dependencies.find {dep -> dep.artifactId == 'servlet-api' }.optional = true
+    }
+    pomDef.writeTo(pomPath)
   }
 }
 
