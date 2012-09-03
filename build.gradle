@@ -89,20 +89,23 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
   }
 }
 
+task mavenPom(dependsOn: classes) {
+  ext.pomPath = "$libsDir/pom.xml"
+  ext.pomFile = file(pomPath)
+  doLast {
+    pom {
+      groupId = 'com.watchitlater'
+      artifactId = project.name
+      version = project.version
+    }.writeTo(pomPath)
+  }
+}
+
 artifacts {
   archives sourcesJar
   archives javadocJar
+  archives file: mavenPom.pomFile, builtBy: mavenPom
 }
-
-task mavenPom(dependsOn: classes) << {
-  pom {
-    groupId = 'com.watchitlater'
-    artifactId = project.name
-    version = project.version
-  }.writeTo("$libsDir/pom.xml")
-}
-
-assemble.dependsOn(mavenPom)
 
 /*
 task wrapper(type: Wrapper) {
