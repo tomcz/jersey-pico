@@ -27,6 +27,7 @@
  */
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'maven'
 
 defaultTasks 'clean', 'build'
 
@@ -63,7 +64,7 @@ task(jetty, type: JavaExec, dependsOn: 'testClasses') {
 }
 
 ext.sharedManifest = manifest {
-  attributes("Implementation-Title": "jersey-pico", "Implementation-Version": version)
+  attributes("Implementation-Title": project.name, "Implementation-Version": version)
 }
 
 jar {
@@ -92,6 +93,16 @@ artifacts {
   archives sourcesJar
   archives javadocJar
 }
+
+task mavenPom(dependsOn: classes) << {
+  pom {
+    groupId = 'com.watchitlater'
+    artifactId = project.name
+    version = project.version
+  }.writeTo("$libsDir/pom.xml")
+}
+
+assemble.dependsOn(mavenPom)
 
 /*
 task wrapper(type: Wrapper) {
