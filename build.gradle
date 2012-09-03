@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Thomas Czarniecki
+ * Copyright (c) 2012, Thomas Czarniecki
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -25,34 +25,45 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.sun.jersey.spi.pico.container.servlet;
+apply plugin: 'java'
+apply plugin: 'idea'
 
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.webapp.WebAppContext;
+defaultTasks 'clean', 'build'
 
-public class WebServer {
+version = '1.0'
 
-    private final Server server;
-
-    public WebServer(int port) {
-        server = new Server(port);
-    }
-
-    public void start() throws Exception {
-        server.addHandler(new WebAppContext("src/test/webapp", "/"));
-        server.start();
-    }
-
-    public void stop() throws Exception {
-        server.stop();
-    }
-
-    private WebServer stopOnShutdown() {
-        server.setStopAtShutdown(true);
-        return this;
-    }
-
-    public static void main(String[] args) throws Exception {
-        new WebServer(8080).stopOnShutdown().start();
-    }
+repositories {
+  mavenCentral()
 }
+
+configurations.all {
+  exclude(group: 'commons-logging')
+}
+
+dependencies {
+  compile 'javax.servlet:servlet-api:2.5'
+
+  compile 'org.picocontainer:picocontainer:2.13.6'
+
+  compile 'com.sun.jersey:jersey-servlet:1.13'
+  compile 'com.sun.jersey:jersey-server:1.13'
+  compile 'com.sun.jersey:jersey-core:1.13'
+
+  testCompile 'junit:junit:4.9'
+  testCompile 'commons-io:commons-io:2.0.1'
+
+  testCompile('org.mortbay.jetty:jetty:6.1.26') {
+    exclude(module: 'servlet-api')
+  }
+}
+
+task(jetty, type: JavaExec, dependsOn: 'testClasses') {
+  main = 'com.sun.jersey.spi.pico.container.servlet.WebServer'
+  classpath = sourceSets.test.runtimeClasspath
+}
+
+/*
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.0'
+}
+*/

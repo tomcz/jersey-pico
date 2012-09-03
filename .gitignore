@@ -1,4 +1,5 @@
-test.txt
+.DS_Store
+.gradle
 *.iws
 build
 out
