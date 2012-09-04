@@ -15,14 +15,16 @@ Dependencies
 Alternatively you can use the [archives.watchitlater.com](http://archives.watchitlater.com/maven) maven
 repository to fetch the latest binary, source and javadoc JARs.
 
-    repositories {
-      mavenCentral()
-      maven { url "http://archives.watchitlater.com/maven" }
-    }
+```groovy
+repositories {
+  mavenCentral()
+  maven { url "http://archives.watchitlater.com/maven" }
+}
 
-    dependencies {
-      compile 'com.watchitlater:jersey-pico:1.1'
-    }
+dependencies {
+  compile 'com.watchitlater:jersey-pico:1.1'
+}
+```
 
 Examples
 --------
