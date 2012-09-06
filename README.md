@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-  compile 'com.watchitlater:jersey-pico:1.1'
+  compile 'com.watchitlater:jersey-pico:1.2'
 }
 ```
 
