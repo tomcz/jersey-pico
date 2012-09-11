@@ -27,50 +27,39 @@
  */
 package com.sun.jersey.spi.pico.container.servlet;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.picocontainer.MutablePicoContainer;
 
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import static org.junit.Assert.assertThat;
+import static org.junit.matchers.JUnitMatchers.hasItems;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class PicoConfigurationsTests {
+public class ResourceConfigurationTests {
 
-    private PicoConfiguration c1;
-    private PicoConfiguration c2;
-    private MutablePicoContainer scope;
-    private PicoConfigurations configurations;
+    @Test
+    public void shouldRegisterGivenClassesAsRequestScopeComponents() {
+        MutablePicoContainer scope = mock(MutablePicoContainer.class);
 
-    @Before
-    public void setUp() {
-        c1 = mock(PicoConfiguration.class);
-        c2 = mock(PicoConfiguration.class);
-        scope = mock(MutablePicoContainer.class);
-        configurations = new PicoConfigurations(c1, c2);
+        ResourceConfiguration configuration = new ResourceConfiguration(String.class, Map.class);
+        configuration.registerResourceScope(scope);
+
+        verify(scope).addComponent(String.class);
+        verify(scope).addComponent(Map.class);
     }
 
     @Test
-    public void shouldRegisterApplicationScopeForAllConfigurations() {
-        configurations.registerApplicationScope(scope);
-        verify(c1).registerApplicationScope(scope);
-        verify(c2).registerApplicationScope(scope);
-    }
+    @SuppressWarnings("unchecked")
+    public void shouldRegisterGivenClassesAsResources() {
+        Set<Class<?>> resources = new HashSet<Class<?>>();
 
-    @Test
-    public void shouldRegisterRequestScopeForAllConfigurations() {
-        configurations.registerResourceScope(scope);
-        verify(c1).registerResourceScope(scope);
-        verify(c2).registerResourceScope(scope);
-    }
+        ResourceConfiguration configuration = new ResourceConfiguration(String.class, Map.class);
+        configuration.registerResources(resources);
 
-    @Test
-    public void shouldRegisterResourcesForAllConfigurations() {
-        Set<Class<?>> resources = Collections.emptySet();
-        configurations.registerResources(resources);
-        verify(c1).registerResources(resources);
-        verify(c2).registerResources(resources);
+        assertThat(resources, hasItems(String.class, Map.class));
     }
 }

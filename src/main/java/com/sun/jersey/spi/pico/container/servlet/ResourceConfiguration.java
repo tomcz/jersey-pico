@@ -27,50 +27,36 @@
  */
 package com.sun.jersey.spi.pico.container.servlet;
 
-import org.junit.Before;
-import org.junit.Test;
 import org.picocontainer.MutablePicoContainer;
 
 import java.util.Collections;
 import java.util.Set;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+/**
+ * An implementation of {@link PicoConfiguration} that registers configured
+ * resource classes as resource-scoped components and as Jersey resources.
+ *
+ * @see #registerResourceScope(org.picocontainer.MutablePicoContainer)
+ * @see #registerResources(java.util.Set)
+ * @see ScopedPicoContainerProvider
+ */
+public class ResourceConfiguration extends BlankPicoConfiguration {
 
-public class PicoConfigurationsTests {
+    private Class<?>[] resourceClasses;
 
-    private PicoConfiguration c1;
-    private PicoConfiguration c2;
-    private MutablePicoContainer scope;
-    private PicoConfigurations configurations;
-
-    @Before
-    public void setUp() {
-        c1 = mock(PicoConfiguration.class);
-        c2 = mock(PicoConfiguration.class);
-        scope = mock(MutablePicoContainer.class);
-        configurations = new PicoConfigurations(c1, c2);
+    public ResourceConfiguration(Class<?>... resourceClasses) {
+        this.resourceClasses = resourceClasses;
     }
 
-    @Test
-    public void shouldRegisterApplicationScopeForAllConfigurations() {
-        configurations.registerApplicationScope(scope);
-        verify(c1).registerApplicationScope(scope);
-        verify(c2).registerApplicationScope(scope);
+    @Override
+    public void registerResourceScope(MutablePicoContainer scope) {
+        for (Class<?> resource : resourceClasses) {
+            scope.addComponent(resource);
+        }
     }
 
-    @Test
-    public void shouldRegisterRequestScopeForAllConfigurations() {
-        configurations.registerResourceScope(scope);
-        verify(c1).registerResourceScope(scope);
-        verify(c2).registerResourceScope(scope);
-    }
-
-    @Test
-    public void shouldRegisterResourcesForAllConfigurations() {
-        Set<Class<?>> resources = Collections.emptySet();
-        configurations.registerResources(resources);
-        verify(c1).registerResources(resources);
-        verify(c2).registerResources(resources);
+    @Override
+    public void registerResources(Set<Class<?>> resources) {
+        Collections.addAll(resources, resourceClasses);
     }
 }
