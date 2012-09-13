@@ -88,7 +88,7 @@ public class PicoServlet extends ServletContainer {
 
     private PicoContainerProvider createProvider(String configurationClassName) {
         try {
-            Class<?> configurationClass = Class.forName(configurationClassName);
+            Class<?> configurationClass = Thread.currentThread().getContextClassLoader().loadClass(configurationClassName);
             PicoConfiguration configuration = (PicoConfiguration) configurationClass.newInstance();
             return new ScopedPicoContainerProvider(configuration);
 
