@@ -9,7 +9,7 @@ it required to use PicoContainer as an IoC container within Jersey.
 Dependencies
 ------------
 
-* jersey APIs - see https://jersey.dev.java.net/
+* jersey APIs - see http://jersey.java.net/
 * picocontainer.jar - see http://picocontainer.codehaus.org/
 
 Alternatively you can use the [archives.watchitlater.com](http://archives.watchitlater.com/maven) maven
