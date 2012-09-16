@@ -33,4 +33,4 @@ Please take a look at `src/test/webapp/WEB-INF/web.xml` for examples of how to c
 All the example code is located in the `com.sun.jersey.spi.pico.container.servlet.example` package in `src/test/java`.
 
 In addition you can look at the https://github.com/tomcz/jersey-webapps project to see how I wire up
-a web application using either jersey-pico or Guice + Jersey.
+a Jersey web application using either jersey-pico or guice as the IoC container.
