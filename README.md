@@ -32,5 +32,5 @@ Examples
 Please take a look at `src/test/webapp/WEB-INF/web.xml` for examples of how to configure the PicoServlet.
 All the example code is located in the `com.sun.jersey.spi.pico.container.servlet.example` package in `src/test/java`.
 
-I addition you can look at the https://github.com/tomcz/jersey-webapps project to see how I wire up
+In addition you can look at the https://github.com/tomcz/jersey-webapps project to see how I wire up
 a web application using either jersey-pico or Guice + Jersey.
