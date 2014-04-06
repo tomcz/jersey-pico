@@ -28,9 +28,11 @@
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'maven'
+apply plugin: 'signing'
 
 defaultTasks 'clean', 'build'
 
+group = 'com.watchitlater'
 version = '1.2.1'
 
 repositories {
@@ -95,31 +97,68 @@ task mavenPom(dependsOn: classes) {
   ext.pomFile = file(pomPath)
   doLast {
     def pomDef = pom {
-      groupId = 'com.watchitlater'
-      artifactId = project.name
-      version = project.version
+      project {
+        name 'jersey-pico-container'
+        description 'This project provides allows the use of PicoContainer-managed instances as Jersey resources.'
+        developers {
+          developer {
+            id 'tomcz'
+            name 'Tom Czarniecki'
+          }
+        }
+        licenses {
+          license {
+            name 'The BSD 3-Clause License'
+            url 'http://opensource.org/licenses/BSD-3-Clause'
+            distribution 'repo'
+          }
+        }
+        url 'https://github.com/tomcz/jersey-pico'
+        scm {
+          connection 'scm:git:git@github.com:tomcz/jersey-pico.git'
+          url 'scm:git:git@github.com:tomcz/jersey-pico.git'
+          developerConnection 'scm:git:git@github.com:tomcz/jersey-pico.git'
+        }
+        issueManagement {
+          system 'github'
+          url 'https://github.com/tomcz/jersey-pico/issues'
+        }
+      }
     }
     pomDef.whenConfigured { pom ->
-      pom.dependencies.find {dep -> dep.artifactId == 'servlet-api' }.optional = true
+      pom.dependencies.find { dep -> dep.artifactId == 'servlet-api' }.optional = true
     }
     pomDef.writeTo(pomPath)
   }
-}
-
-task bundleZip(type: Zip, dependsOn: [jar, sourcesJar, javadocJar, mavenPom]) {
-  includes = ['*.jar', '*.xml']
-  from libsDir
 }
 
 artifacts {
   archives file: mavenPom.pomFile, builtBy: mavenPom
   archives sourcesJar
   archives javadocJar
-  archives bundleZip
+  archives jar
 }
 
-/*
-task wrapper(type: Wrapper) {
-  gradleVersion = '1.0'
+signing {
+  sign configurations.archives
 }
-*/
+
+signArchives.onlyIf { project.hasProperty('releaseBuild') }
+
+task releaseJar(type: Jar, dependsOn: assemble) {
+  destinationDir = distsDir
+  classifier = 'release'
+  from libsDir
+}
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      repository(url: project.properties.get('mavenUploadURL') ?: "file://tmp/repo/")
+    }
+  }
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.11'
+}
